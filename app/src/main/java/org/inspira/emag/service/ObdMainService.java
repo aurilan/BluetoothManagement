@@ -126,8 +126,7 @@ public class ObdMainService extends Service {
                 );
                 TripsData db = new TripsData(ObdMainService.this);
                 String tiempo = ProveedorDeRecursos.obtenerFecha();
-                int rid = db.insertTrip(db
-                        .obtenerIdVehiculoFromNombre(ProveedorDeRecursos
+                int rid = db.insertTrip(db.obtenerIdVehiculoFromNombre(ProveedorDeRecursos
                                 .obtenerRecursoString(ObdMainService.this, "vehiculo")), tiempo);
                 Trip t = new Trip(rid, tiempo, null);
                 Uploader u = new Uploader(t);
@@ -325,7 +324,7 @@ public class ObdMainService extends Service {
                 }
             });
         }
-        Log.d("Savior", "Stupid human!!!!");
+        Log.d("Savior", "Activity successfully set");
     }
 
     public void sendUncommitedData(){
@@ -341,23 +340,23 @@ public class ObdMainService extends Service {
                         .setContentTitle("Sincronización")
                         .setContentText("Actualizando datos");
         new Thread(
-            new Runnable() {
-                @Override
-                public void run() {
-                    int incr=0;
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        int incr=0;
                         // Sets the progress indicator to a max value, the
                         // current completion percentage, and "determinate"
                         // state
-                    //mBuilder.setProgress(uncommitedTrips.length, incr++, false);
+                        //mBuilder.setProgress(uncommitedTrips.length, incr++, false);
                         // Displays the progress bar for the first time.
                         mNM.notify(0, mBuilder.build());
-                    // When the loop is finished, updates the notification
-                    mBuilder.setContentText("¡Listo!")
-                            // Removes the progress bar
-                            .setProgress(0,0,false);
-                    mNM.notify(UPDATING_ID, mBuilder.build());
+                        // When the loop is finished, updates the notification
+                        mBuilder.setContentText("¡Listo!")
+                                // Removes the progress bar
+                                .setProgress(0,0,false);
+                        mNM.notify(UPDATING_ID, mBuilder.build());
+                    }
                 }
-            }
         ).start();
         //mBuilder.setContentIntent(resultPendingIntent);
         mBuilder.setVibrate(new long[]{100, 100, 100, 600});

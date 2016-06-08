@@ -54,16 +54,16 @@ public class Uploader extends Thread {
     public void run(){
         Log.d(TAG, "Uploading " + readings.length + " readings..");
         try {
-            JSONObject json = new JSONObject();
+            JSONObject json = new JSONObject();// {"vehiculo": "BMW", "email": "alan@emag.com", "action": 4, "Latitud": -19.15433543248635341, "Longitud": 99.0145314886145, "Timestamp": "18/02/2016 19:40:32"}
             json.put("vehiculo", vehiculo);
             json.put("email", email);
-            for (Shareable reading : readings) {
+            for (Shareable reading : readings) { // for(int i=0; i<readings.length; i++){ Shareable reading = readings[i];
                 HttpURLConnection con = (HttpURLConnection) new URL(MainActivity.SERVER_URL).openConnection();
                 con.setDoOutput(true);
                 DataOutputStream salida = new DataOutputStream(con.getOutputStream());
                 if( reading instanceof Location)
                     try {
-                        json.put("action",4);
+                        json.put("action", 4);
                         json.put("Latitud", ((Location) reading).getLatitud());
                         json.put("Longitud", ((Location) reading).getLongitud());
                         json.put("timestamp", ((Location) reading).getTimestamp());
@@ -72,7 +72,7 @@ public class Uploader extends Thread {
                     }
                 else if(reading instanceof RPM)
                     try {
-                        json.put("action",2);
+                        json.put("action", 2);
                         json.put("RPM", ((RPM) reading).getRpmValue());
                         json.put("timestamp", ((RPM) reading).getTimeStamp());
                     } catch (JSONException re) {
@@ -80,7 +80,7 @@ public class Uploader extends Thread {
                     }
                 else if( reading instanceof Speed )
                     try {
-                        json.put("action",3);
+                        json.put("action", 3);
                         json.put("SPEED", ((Speed) reading).getSpeed());
                         json.put("timestamp", ((Speed) reading).getTimestamp());
                     } catch (JSONException re) {
