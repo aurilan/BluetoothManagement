@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -44,11 +47,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
- * Created by jcapiz on 15/09/15.
+ * Created by jcapiz on 15/09/15.tl
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -112,6 +115,21 @@ public class MainActivity extends AppCompatActivity {
 		manager = new BluetoothManager(this);
 		mService = new Intent(this, ObdMainService.class);
         mServiceMock = new Intent(this, ObdMockService.class);
+        TextView verResultados = (TextView) findViewById(R.id.bluetooth_activity_ver_resultados);
+        verResultados.setOnClickListener(new View.OnClickListener(){
+            @Override public void onClick(View view){
+                Uri location = Uri.parse("http://www.emag.zooropa.com.mx");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW    , location);
+                // Verify it resolves
+                PackageManager packageManager = getPackageManager();
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(mapIntent, 0);
+                boolean isIntentSafe = activities.size() > 0;
+                // Start an activity if it's safe
+                if (isIntentSafe) {
+                    startActivity(mapIntent);
+                }
+            }
+        });
         ((TextView)findViewById(R.id.welcome)).setTypeface(Typeface.createFromAsset(getAssets(),
                 "RobotoCondensed/RobotoCondensed-Regular.ttf"));
 		if (manager.getBluetoothAdapter() == null) {
@@ -153,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem actionSyncData = menu.findItem(R.id.action_sync_data);
         TripsData db = new TripsData(this);
-        Log.d("Legitimo", "We got to see " + db.getUncommitedTrips().length);
+        Log.d("Legitimo", "We got to see " + db.getUncommitedTrips().length + " uncommited trips.");
         if(db.getUncommitedTrips().length == 0) {
             actionSyncData.setVisible(false);
             actionSyncData.setEnabled(false);
@@ -199,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
             serviceOnMock = true;
             mBoundServiceMock = ((ObdMockService.LocalBinder) service).getService();
             mBoundServiceMock.setActivity(MainActivity.this);
-            Uploader up = new Uploader(new RawReading("Acabamos de ponerle algo aquí " + new SimpleDateFormat().format(new Date())));
+            Uploader up = new Uploader(new RawReading("Acabamos de ponerle algo aquí " + ProveedorDeRecursos.obtenerFecha()));
             up.setContext(MainActivity.this);
             up.start();
         }
@@ -211,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
             // Because it is running in our same process, we should never
             // see this happen.
             mBoundServiceMock = null;
+            serviceOnMock = false;
         }
     };
     private boolean mIsBoundMock;
@@ -380,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                     throttlePosWriter.close();
                     speedsWriter.close();
                     locationWriter.close();
-                    // db.clearTables();
+                    db.clearTables();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -503,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
     public void updateLocationData(String latitud, String longitud){
         TripsData db = new TripsData(this);
         Trip trip = db.getUnconcludedTrip();
-        String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
+        String date = ProveedorDeRecursos.obtenerFecha();
         if( trip != null ) {
             int locId = db.insertaUbicacion(latitud, longitud, date, trip.getIdTrip());
             Location cLoc = new Location(locId, latitud, longitud, date, trip.getIdTrip());
@@ -554,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
             serviceOn = true;
             mBoundService = ((ObdMainService.LocalBinder) service).getService();
             mBoundService.setActivity(MainActivity.this);
-            Uploader up = new Uploader(new RawReading("Acabamos de ponerle algo aquí " + new SimpleDateFormat().format(new Date())));
+            Uploader up = new Uploader(new RawReading("Acabamos de ponerle algo aquí " + ProveedorDeRecursos.obtenerFecha()));
             up.setContext(MainActivity.this);
             up.start();
         }
@@ -598,7 +617,7 @@ public class MainActivity extends AppCompatActivity {
                 try{
                     JSONObject json = new JSONObject();
                     json.put("action", 5);
-                    json.put("fechaFin", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
+                    json.put("fechaFin", ProveedorDeRecursos.obtenerFecha());
                     json.put("vehiculo", getSharedPreferences(OrganizarVehiculos.class.getName(), Context.MODE_PRIVATE).getString("vehiculo", "NaN"));
                     json.put("email", "jcc23@ipn.mx");
                     HttpURLConnection con = (HttpURLConnection) new URL(MainActivity.SERVER_URL).openConnection();

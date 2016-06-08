@@ -17,6 +17,7 @@ import android.widget.EditText;
 
 import org.capiz.bluetooth.R;
 import org.inspira.emag.actividades.OrganizarVehiculos;
+import org.inspira.emag.actividades.ProveedorDeRecursos;
 import org.inspira.emag.database.TripsData;
 import org.inspira.emag.dialogos.ProveedorSnackBar;
 import org.inspira.emag.networking.LoginConnection;
@@ -37,6 +38,7 @@ public class SignIn extends Fragment {
     Button start;
     String userString, pwString;
     SignUp.Acciones acciones;
+    boolean performingConnection;
 
     public void setAcciones(SignUp.Acciones acciones) {
         this.acciones = acciones;
@@ -50,40 +52,47 @@ public class SignIn extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.activity_login, parent, false);
-
+        if(savedInstanceState == null)
+            performingConnection = false;
+        else performingConnection = savedInstanceState.getBoolean("performing_connection");
         user = (EditText)rootView.findViewById(R.id.usuario);
         password = (EditText)rootView.findViewById(R.id.pw);
         start = (Button)rootView.findViewById(R.id.iniciar);
         password.setTypeface(Typeface.createFromAsset(getActivity().getAssets(),"Roboto-Regular.ttf"));
-
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    userString = user.getText().toString().trim();
-                    pwString = password.getText().toString().trim();
-                    if (!"".equals(userString) && !"".equals(pwString)) {
-                        LoginConnection lc = new LoginConnection(new LoginConnection.OnConnectionAction() {
-                            @Override
-                            public void validationSucceded(JSONObject json) {
-                                obtencionDeAutos(json);
-                            }
+                if(!performingConnection) {
+                    ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+                    if (networkInfo != null && networkInfo.isConnected()) {
+                        userString = user.getText().toString().trim();
+                        pwString = password.getText().toString().trim();
+                        if (!"".equals(userString) && !"".equals(pwString)) {
+                            LoginConnection lc = new LoginConnection(new LoginConnection.OnConnectionAction() {
+                                @Override
+                                public void validationSucceded(JSONObject json) {
+                                    obtencionDeAutos(json);
+                                }
 
-                            @Override
-                            public void validationError() {
-                                cleanPass();
-                            }
-                        });
-                        lc.execute(userString, new Hasher().makeHashString(pwString));
+                                @Override
+                                public void validationError() {
+                                    cleanPass();
+                                }
+                            });
+                            lc.setContext(SignIn.this);
+                            lc.execute(userString, new Hasher().makeHashString(pwString));
+                        } else {
+                            ProveedorSnackBar
+                                    .muestraBarraDeBocados(user, "Debe llenar los campos :)");
+                        }
                     } else {
                         ProveedorSnackBar
-                                .muestraBarraDeBocados(user, "Debe llenar los campos :)");
+                                .muestraBarraDeBocados(user, "Problemas de conexión :(");
                     }
-                } else {
+                }else{
                     ProveedorSnackBar
-                            .muestraBarraDeBocados(user, "Problemas de conexión :(");
+                            .muestraBarraDeBocados(user, "Ya estamos conectando, espere =)");
                 }
             }
         });
@@ -116,10 +125,15 @@ public class SignIn extends Fragment {
         }catch(JSONException ignore){}
     }
 
+    public void finishedPerformingConnection(){
+        performingConnection = false;
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState){
         outState.putString("pass", pwString);
         outState.putString("user", userString);
+        outState.putBoolean("performing_connection", performingConnection);
     }
 
     @Override

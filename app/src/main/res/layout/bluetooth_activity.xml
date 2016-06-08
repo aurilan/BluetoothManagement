@@ -175,4 +175,15 @@
         android:layout_marginLeft="20sp"
         android:layout_marginTop="20sp"/>
 -->
+    <TextView
+        android:id="@+id/bluetooth_activity_ver_resultados"
+        android:layout_width="200sp"
+        android:layout_height="55sp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32sp"
+        android:text="Ver resultados"
+        android:textSize="26sp"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/slate"/>
 </RelativeLayout>

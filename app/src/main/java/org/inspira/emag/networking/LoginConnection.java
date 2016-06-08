@@ -1,9 +1,11 @@
 package org.inspira.emag.networking;
 
 import android.os.AsyncTask;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import org.inspira.emag.actividades.MainActivity;
+import org.inspira.emag.fragmentos.SignIn;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,6 +23,11 @@ import java.net.URLDecoder;
 public class LoginConnection extends AsyncTask<String,String,JSONObject> {
 
     OnConnectionAction actions;
+    Fragment context;
+
+    public void setContext(Fragment context) {
+        this.context = context;
+    }
 
     public LoginConnection(OnConnectionAction actions){
         this.actions = actions;
@@ -78,5 +85,6 @@ public class LoginConnection extends AsyncTask<String,String,JSONObject> {
         }catch(JSONException e){
             e.printStackTrace();
         }
+        ((SignIn)context).finishedPerformingConnection();
     }
 }
